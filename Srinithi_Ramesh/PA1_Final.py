@@ -474,8 +474,8 @@ def model_selection(X, Y, order, initial_guess=None):
                                                     initial_guess=initial_guess[1], step_size=step_size,
                                                     convergence_criteria=convergence_criteria)
     optimized_function_w = fmin_bfgs(sum_of_squared_errors, initial_guess[2], args=args)
-    analytical_regularized_w = analyticalRidgeRegression(0.001, *args)
-    numerical_regularized_w = numericalRidgeregression(0.001, *args, initial_guess=initial_guess[4], step_size=step_size,
+    analytical_regularized_w = analyticalRidgeRegression(l, *args)
+    numerical_regularized_w = numericalRidgeregression(l, *args, initial_guess=initial_guess[4], step_size=step_size,
                                                        convergence_criteria=convergence_criteria)
 
     # produce a plot of the values of the function
