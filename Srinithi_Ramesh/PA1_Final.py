@@ -314,7 +314,7 @@ def getData(name):
 
 def bishopCurveData():
     # y = sin(2 pi x) + N(0,0.3),
-    return getData('/home/raghavan/Downloads/PA1/curvefitting.txt')
+    return getData('curvefitting.txt')
 
 
 print("\nLinear Basis Function Regression - MLE")
