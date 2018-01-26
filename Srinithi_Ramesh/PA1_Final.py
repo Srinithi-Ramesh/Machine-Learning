@@ -450,15 +450,15 @@ print("Ridge Regression numerically:\n", numerical_regularized_w)
 
 
 def regressAData():
-    return getData('/home/raghavan/Downloads/PA1/regressA_train.txt')
+    return getData('regressA_train.txt')
 
 
 def regressBData():
-    return getData('/home/raghavan/Downloads/PA1/regressB_train.txt')
+    return getData('regressB_train.txt')
 
 
 def validateData():
-    return getData('/home/raghavan/Downloads/PA1/regress_validate.txt')
+    return getData('regress_validate.txt')
 
 
 def model_selection(X, Y, order, initial_guess=None):
