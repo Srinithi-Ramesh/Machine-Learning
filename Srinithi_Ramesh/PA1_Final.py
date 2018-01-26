@@ -502,13 +502,14 @@ def model_selection(X, Y, order, initial_guess=None):
 
 
 def validate_models():
+    M = 1
     X, Y = regressAData()
-    wA = model_selection(X, Y, 1)
+    wA = model_selection(X, Y, M)
     X, Y = regressBData()
-    wB = model_selection(X, Y, 1, wA)
+    wB = model_selection(X, Y, M, wA)
 
     X, Y = validateData()
-    phi = designMatrix(X, 1)
+    phi = designMatrix(X, M)
     args = (Y, phi)
     error = np.zeros(5)
     models = ["Gradient Descent", "Gradient Descent using Finite Differences Theorem", "Using scipy.fmin_bfgs",
