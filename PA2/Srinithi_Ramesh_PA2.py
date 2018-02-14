@@ -1,6 +1,7 @@
 from plotBoundary import *
 import numpy as np
 from cvxopt import *
+from scipy import optimize
 
 
 ###################################################################################
@@ -9,6 +10,7 @@ from cvxopt import *
 # data is predictLR
 # count_error is used to report the number of mistakes on the training data
 ###################################################################################
+w_train = np.zeros((3,1))
 
 def yt(w, x, y):
     return (dot(w[1:len(w)].T, x) + w[0]) * y
@@ -98,12 +100,12 @@ Y_train = train[:, 2:3]
 args = (X_train, Y_train, l)
 
 
-w_train = gradient_descent_finite_theorem(logistic_regression_nll,
-                                          finite_differences_gradient,
-                                          *args, initial_guess=guess, step_size=0.01,
-                                          convergence_criteria=0.0001)
+# w_train = gradient_descent_finite_theorem(logistic_regression_nll,
+#                                           finite_differences_gradient,
+#                                           *args, initial_guess=guess, step_size=0.01,
+#                                           convergence_criteria=0.0001)
 
-print("Training error in linearly separable data:", count_error(X_train, Y_train))
+# print("Training error in linearly separable data:", count_error(X_train, Y_train))
 
 ###########################################################################################
 # 1.2 Effect of regularization term on logistic regression
@@ -180,15 +182,15 @@ def plotting_logistic_regression():
     plotDecisionBoundary(X_validate, Y_validate, predictLR, [0.5], title='Non Linear Validate')
 
 
-print("Errors when there is no regularization:")
-l = 0
-plotting_logistic_regression()
-print("Errors when there is lambda = 10:")
-l = 10
-plotting_logistic_regression()
-print("Errors when there is lambda = 100:")
-l = 100
-plotting_logistic_regression()
+# print("Errors when there is no regularization:")
+# l = 0
+# plotting_logistic_regression()
+# print("Errors when there is lambda = 10:")
+# l = 10
+# plotting_logistic_regression()
+# print("Errors when there is lambda = 100:")
+# l = 100
+# plotting_logistic_regression()
 
 
 ###########################################################################################
@@ -314,8 +316,8 @@ def plotting_logistic_regression_kernel():
     plotDecisionBoundary(X_validate, Y_validate, predict_with_kernel, [0.5], title='Non Linear Validate')
 
 
-print("Results with kernel")
-plotting_logistic_regression_kernel()
+# print("Results with kernel")
+# plotting_logistic_regression_kernel()
 ###############################################################################################
 # 2.1 Support Vector Machine Implementation
 ###############################################################################################
@@ -371,92 +373,128 @@ def count_errorSVM(X, Y):
     return error_count
 
 
-data = 'ls'
-print('======Training======')
-train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
-X_train = train[:, 0:2]
-Y_train = train[:, 2:3]
-alpha = dual_svm(X_train, Y_train)
-w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
-
-for i in range(len(alpha)):
-    if alpha[i] > 1e-4:
-        b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
-        break
-print("bias:", b1)
-
-print("Weights on ls data:", b1, w_train_SVM)
-
-print("Training error in linearly separable data:", count_errorSVM(X_train, Y_train))
-plotDecisionBoundary(X_train, Y_train, predictSVM, [0.5], title='LR Train')
-
-print('======Validation======')
-validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
-X_validate = validate[:, 0:2]
-Y_validate = validate[:, 2:3]
-print("Testing error in non-linearly separable data:", count_errorSVM(X_validate, Y_validate))
-plotDecisionBoundary(X_validate, Y_validate, predictSVM, [0.5], title='LR Validate')
-
-data = 'nls'
-print('======Training======')
-train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
-X_train = train[:, 0:2]
-Y_train = train[:, 2:3]
-alpha = dual_svm_nls(X_train, Y_train, c)
-w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
-
-for i in range(len(alpha)):
-    if alpha[i] > 1e-4:
-        b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
-        break
-print("bias:", b1)
-print("Weights on nls data:", w_train_SVM)
-print("Training error in non-linearly separable data:", count_errorSVM(X_train, Y_train))
-plotDecisionBoundary(X_train, Y_train, predictSVM, [0.5], title='NLS Train')
-
-print('======Validation======')
-validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
-X_validate = validate[:, 0:2]
-Y_validate = validate[:, 2:3]
-print("Testing error in non-linearly separable data:", count_errorSVM(X_validate, Y_validate))
-plotDecisionBoundary(X_validate, Y_validate, predictSVM, [0.5], title='NLS Validate')
-
-data = 'nonlin'
-print('======Training======')
-train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
-X_train = train[:, 0:2]
-Y_train = train[:, 2:3]
-args = (X_train, Y_train, l)
-alpha = dual_svm_nls(X_train, Y_train, c)
-w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
-
-for i in range(len(alpha)):
-    if alpha[i] > 1e-4:
-        b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
-        break
-print("bias:", b1)
-
-print("Weights on non-lin data:", w_train_SVM)
-print("Training error in non-linear data:", count_errorSVM(X_train, Y_train))
-plotDecisionBoundary(X_train, Y_train, predictSVM, [0.5], title='Non Linear Train')
-
-print('======Validation======')
-validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
-X_validate = validate[:, 0:2]
-Y_validate = validate[:, 2:3]
-print("Testing error in non-linear data:", count_errorSVM(X_validate, Y_validate))
-plotDecisionBoundary(X_validate, Y_validate, predictSVM, [0.5], title='Non Linear Validate')
+# data = 'ls'
+# print('======Training======')
+# train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
+# X_train = train[:, 0:2]
+# Y_train = train[:, 2:3]
+# alpha = dual_svm(X_train, Y_train)
+# w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
+#
+# for i in range(len(alpha)):
+#     if alpha[i] > 1e-4:
+#         b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
+#         break
+# print("bias:", b1)
+#
+# print("Weights on ls data:", b1, w_train_SVM)
+#
+# print("Training error in linearly separable data:", count_errorSVM(X_train, Y_train))
+# plotDecisionBoundary(X_train, Y_train, predictSVM, [0.5], title='LR Train')
+#
+# print('======Validation======')
+# validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
+# X_validate = validate[:, 0:2]
+# Y_validate = validate[:, 2:3]
+# print("Testing error in non-linearly separable data:", count_errorSVM(X_validate, Y_validate))
+# plotDecisionBoundary(X_validate, Y_validate, predictSVM, [0.5], title='LR Validate')
+#
+# data = 'nls'
+# print('======Training======')
+# train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
+# X_train = train[:, 0:2]
+# Y_train = train[:, 2:3]
+# alpha = dual_svm_nls(X_train, Y_train, c)
+# w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
+#
+# for i in range(len(alpha)):
+#     if alpha[i] > 1e-4:
+#         b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
+#         break
+# print("bias:", b1)
+# print("Weights on nls data:", w_train_SVM)
+# print("Training error in non-linearly separable data:", count_errorSVM(X_train, Y_train))
+# plotDecisionBoundary(X_train, Y_train, predictSVM, [0.5], title='NLS Train')
+#
+# print('======Validation======')
+# validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
+# X_validate = validate[:, 0:2]
+# Y_validate = validate[:, 2:3]
+# print("Testing error in non-linearly separable data:", count_errorSVM(X_validate, Y_validate))
+# plotDecisionBoundary(X_validate, Y_validate, predictSVM, [0.5], title='NLS Validate')
+#
+# data = 'nonlin'
+# print('======Training======')
+# train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
+# X_train = train[:, 0:2]
+# Y_train = train[:, 2:3]
+# args = (X_train, Y_train, l)
+# alpha = dual_svm_nls(X_train, Y_train, c)
+# w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
+#
+# for i in range(len(alpha)):
+#     if alpha[i] > 1e-4:
+#         b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
+#         break
+# print("bias:", b1)
+#
+# print("Weights on non-lin data:", w_train_SVM)
+# print("Training error in non-linear data:", count_errorSVM(X_train, Y_train))
+# plotDecisionBoundary(X_train, Y_train, predictSVM, [0.5], title='Non Linear Train')
+#
+# print('======Validation======')
+# validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
+# X_validate = validate[:, 0:2]
+# Y_validate = validate[:, 2:3]
+# print("Testing error in non-linear data:", count_errorSVM(X_validate, Y_validate))
+# plotDecisionBoundary(X_validate, Y_validate, predictSVM, [0.5], title='Non Linear Validate')
 
 
 ###############################################################################################
 # 3.1 Kernel SVM
 ###############################################################################################
+def calculate_slack(weight, *args):
+    w = weight[1:len(weight)]
+    b = weight[0]
+    c, x, y = args
+    slack = np.zeros(len(y))
+    for i in range(len(y)):
+        new_slack = 1 - (y[i] * (dot(w, x[i]) + b))[0]
+        slack[i] = 0 if new_slack < 0 else new_slack
+    return slack
+
+
+def opt_func(weight, *args):
+    c, x, y = args
+    return 0.5 * dot(weight[1: len(weight)], weight[1: len(weight)].T) + \
+           c * np.sum(calculate_slack(weight, *args))
+
+
+def svm_primal(x, y, c):
+    def constaint_1(weight, *args_l):
+        w_l = weight[1:len(weight)]
+        b_l = weight[0]
+        c, x_l, y_l = args_l
+        val_l = np.zeros(len(y_l))
+        slack_l = calculate_slack(weight, *args_l)
+        for i in range(len(val_l)):
+            val_l[i] = ((np.sum(x_l[0] * w_l) + b_l) * y_l[0] - 1 - slack_l[0])[0]
+        return val_l
+
+    w = np.ones((3, 1))
+    args = c, x, y
+    cons = ({'type': 'ineq', 'fun': constaint_1, 'args': args},
+            {'type': 'ineq', 'fun': calculate_slack, 'args': args})
+    res = optimize.minimize(opt_func, w, args=args, constraints=cons)
+    return res
+
+
 def polynomial_kernel(x, y, p=2):
     return (1 + np.dot(x, y)) ** p
 
 
-def gaussian_kernel(x, y, sigma=5.0):
-    return np.exp(-linalg.norm(x - y) ** 2 / (2 * (sigma ** 2)))
+def gaussian_kernel(x, y, sigma=1.0):
+    return np.exp((-(np.linalg.norm(x-y, axis=None)**2))/(2*sigma**2))
 
 
 def dual_svm_kernel(x, y, c, kernel):
@@ -517,7 +555,7 @@ def count_error_SVM_gaussian_kernel(X, Y):
     return error_count
 
 
-c = 1
+c = 50
 
 data = 'ls'
 print('======Training======')
@@ -542,35 +580,35 @@ print('======Validation======')
 validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
 X_validate = validate[:, 0:2]
 Y_validate = validate[:, 2:3]
-print("Testing error in non-linearly separable data:", count_error_SVM_polynomial_kernel(X_validate, Y_validate))
+print("Testing error in linearly separable data:", count_error_SVM_polynomial_kernel(X_validate, Y_validate))
 plotDecisionBoundary(X_validate, Y_validate, predictSVM_polynomial_kernel, [0.5], title='LR Validate Polynomial Kernel')
 
-print('======Training======')
-train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
-X_train = train[:, 0:2]
-Y_train = train[:, 2:3]
-alpha = dual_svm_kernel(X_train, Y_train, c, gaussian_kernel)
-w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
-
-for i in range(len(alpha)):
-    if alpha[i] > 1e-4:
-        b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
-        break
-print("bias:", b1)
-
-print("Weights on ls data:", b1, w_train_SVM)
-
-print("Training error in linearly separable data:", count_error_SVM_gaussian_kernel(X_train, Y_train))
-plotDecisionBoundary(X_train, Y_train, predictSVM_gaussian_kernel, [0.5], title='LR Train Gaussian Kernel')
-
-print('======Validation======')
-validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
-X_validate = validate[:, 0:2]
-Y_validate = validate[:, 2:3]
-print("Testing error in non-linearly separable data:", count_error_SVM_gaussian_kernel(X_validate, Y_validate))
-plotDecisionBoundary(X_validate, Y_validate, predictSVM_gaussian_kernel, [0.5], title='LR Validate Gaussian Kernel')
-
-#######################################################################################################################
+# print('======Training======')
+# train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
+# X_train = train[:, 0:2]
+# Y_train = train[:, 2:3]
+# alpha = dual_svm_kernel(X_train, Y_train, c, gaussian_kernel)
+# w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
+#
+# for i in range(len(alpha)):
+#     if alpha[i] > 1e-4:
+#         b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
+#         break
+# print("bias:", b1)
+#
+# print("Weights on ls data:", b1, w_train_SVM)
+#
+# print("Training error in linearly separable data:", count_error_SVM_gaussian_kernel(X_train, Y_train))
+# plotDecisionBoundary(X_train, Y_train, predictSVM_gaussian_kernel, [0.5], title='LR Train Gaussian Kernel')
+#
+# print('======Validation======')
+# validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
+# X_validate = validate[:, 0:2]
+# Y_validate = validate[:, 2:3]
+# print("Testing error in non-linearly separable data:", count_error_SVM_gaussian_kernel(X_validate, Y_validate))
+# plotDecisionBoundary(X_validate, Y_validate, predictSVM_gaussian_kernel, [0.5], title='LR Validate Gaussian Kernel')
+# #
+# #######################################################################################################################
 
 data = 'nls'
 print('======Training======')
@@ -596,33 +634,33 @@ Y_validate = validate[:, 2:3]
 print("Testing error in non-linearly separable data:", count_error_SVM_polynomial_kernel(X_validate, Y_validate))
 plotDecisionBoundary(X_validate, Y_validate, predictSVM_polynomial_kernel, [0.5],
                      title='NLS Validate polynomial kernel')
-
-print('======Training======')
-train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
-X_train = train[:, 0:2]
-Y_train = train[:, 2:3]
-alpha = dual_svm_kernel(X_train, Y_train, c, gaussian_kernel)
-w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
-
-for i in range(len(alpha)):
-    if alpha[i] > 1e-4:
-        b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
-        break
-print("bias:", b1)
-print("Weights on nls data:", w_train_SVM)
-print("Training error in non-linearly separable data:", count_error_SVM_gaussian_kernel(X_train, Y_train))
-plotDecisionBoundary(X_train, Y_train, predictSVM_gaussian_kernel, [0.5], title='NLS Train Gaussian kernel')
-
-print('======Validation======')
-validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
-X_validate = validate[:, 0:2]
-Y_validate = validate[:, 2:3]
-print("Testing error in non-linearly separable data:", count_error_SVM_gaussian_kernel(X_validate, Y_validate))
-plotDecisionBoundary(X_validate, Y_validate, predictSVM_gaussian_kernel, [0.5], title='NLS Validate Gaussian kernel')
-
-########################################################################################################################
-
-
+#
+# print('======Training======')
+# train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
+# X_train = train[:, 0:2]
+# Y_train = train[:, 2:3]
+# alpha = dual_svm_kernel(X_train, Y_train, c, gaussian_kernel)
+# w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
+#
+# for i in range(len(alpha)):
+#     if alpha[i] > 1e-4:
+#         b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
+#         break
+# print("bias:", b1)
+# print("Weights on nls data:", w_train_SVM)
+# print("Training error in non-linearly separable data:", count_error_SVM_gaussian_kernel(X_train, Y_train))
+# plotDecisionBoundary(X_train, Y_train, predictSVM_gaussian_kernel, [0.5], title='NLS Train Gaussian kernel')
+#
+# print('======Validation======')
+# validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
+# X_validate = validate[:, 0:2]
+# Y_validate = validate[:, 2:3]
+# print("Testing error in non-linearly separable data:", count_error_SVM_gaussian_kernel(X_validate, Y_validate))
+# plotDecisionBoundary(X_validate, Y_validate, predictSVM_gaussian_kernel, [0.5], title='NLS Validate Gaussian kernel')
+# #
+# ########################################################################################################################
+#
+#
 data = 'nonlin'
 print('======Training======')
 train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
@@ -650,28 +688,28 @@ print("Testing error in non-linear data:", count_error_SVM_polynomial_kernel(X_v
 plotDecisionBoundary(X_validate, Y_validate, predictSVM_polynomial_kernel, [0.5],
                      title='Non Linear Validate Polynomial kernel')
 
-print('======Training======')
-train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
-X_train = train[:, 0:2]
-Y_train = train[:, 2:3]
-args = (X_train, Y_train, l)
-alpha = dual_svm_kernel(X_train, Y_train, c, gaussian_kernel)
-w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
-
-for i in range(len(alpha)):
-    if alpha[i] > 1e-4:
-        b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
-        break
-print("bias:", b1)
-
-
-print("Weights on non-lin data:", w_train_SVM)
-print("Training error in non-linear data:", count_error_SVM_gaussian_kernel(X_train, Y_train))
-plotDecisionBoundary(X_train, Y_train, predictSVM_gaussian_kernel, [0.5], title='Non Linear Train Gaussian Kernel')
-
-print('======Validation======')
-validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
-X_validate = validate[:, 0:2]
-Y_validate = validate[:, 2:3]
-print("Testing error in non-linear data:", count_error_SVM_gaussian_kernel(X_validate, Y_validate))
-plotDecisionBoundary(X_validate, Y_validate, predictSVM_gaussian_kernel, [0.5], title='Non Linear Validate Gaussian kernel')
+# print('======Training======')
+# train = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_train.csv')
+# X_train = train[:, 0:2]
+# Y_train = train[:, 2:3]
+# args = (X_train, Y_train, l)
+# alpha = dual_svm_kernel(X_train, Y_train, c, gaussian_kernel)
+# w_train_SVM = np.sum(alpha * Y_train * X_train, axis=0)
+#
+# for i in range(len(alpha)):
+#     if alpha[i] > 1e-4:
+#         b1 = Y_train[i] - np.dot(X_train[i], w_train_SVM)
+#         break
+# print("bias:", b1)
+#
+#
+# print("Weights on non-lin data:", w_train_SVM)
+# print("Training error in non-linear data:", count_error_SVM_gaussian_kernel(X_train, Y_train))
+# plotDecisionBoundary(X_train, Y_train, predictSVM_gaussian_kernel, [0.5], title='Non Linear Train Gaussian Kernel')
+#
+# print('======Validation======')
+# validate = loadtxt('/home/srinithi/NEU/HW2 code/data/data_' + data + '_validate.csv')
+# X_validate = validate[:, 0:2]
+# Y_validate = validate[:, 2:3]
+# print("Testing error in non-linear data:", count_error_SVM_gaussian_kernel(X_validate, Y_validate))
+# plotDecisionBoundary(X_validate, Y_validate, predictSVM_gaussian_kernel, [0.5], title='Non Linear Validate Gaussian kernel')
